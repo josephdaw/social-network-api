@@ -22,8 +22,28 @@ module.exports = {
   // create a new thought
   createThought(req, res) {
     Thought.create(req.body)
-      .then((dbThoughtData) => res.json(dbThoughtData))
-      .catch((err) => res.status(500).json(err));
+      .then((dbThoughtData) => {
+        console.log(dbThoughtData)
+        console.log(req.body.username)
+        
+        User.findOneAndUpdate(
+          { username: req.body.username },
+          { $addToSet: { thoughts: dbThoughtData._id } },
+          { runValidators: true, new: true }
+          )
+          .then((user) =>
+          !user
+          ? res
+          .status(404)
+          .json({ message: 'error with user' })
+          : res.json(dbThoughtData)
+          )
+          
+      })
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json(err)
+      });
   },
   // update thought by ID
   updateThought(req, res) {
@@ -31,10 +51,10 @@ module.exports = {
       { _id: req.params.thoughtId },
       { $set: req.body },
       { runValidators: true, new: true }
-      )
-      .then((thought) => 
+    )
+      .then((thought) =>
         !thought
-          ? res.status(404).json({ message: 'No thought with that ID'})
+          ? res.status(404).json({ message: 'No thought with that ID' })
           : res.json(thought)
       )
       .catch((err) => res.status(500).json(err));
@@ -51,7 +71,9 @@ module.exports = {
             { runValidators: true, new: true })
       )
       .then(() => res.json({ message: 'Thoughts deleted!' }))
-      .catch((err) => res.status(500).json(err));
+      .catch((err) => {
+        console.log(err)
+        res.status(500).json(err)});
   },
   // add a reaction to specified thought
   addReaction(req, res) {
@@ -60,27 +82,27 @@ module.exports = {
       { $addToSet: { reaction: req.params.reactionId } },
       { runValidators: true, new: true }
     )
-    .then((reaction) =>
-    !reaction
-      ? res
-          .status(404)
-          .json({ message: 'No reaction found with that ID' })
-      : res.json(reaction)
-  )
+      .then((reaction) =>
+        !reaction
+          ? res
+            .status(404)
+            .json({ message: 'No reaction found with that ID' })
+          : res.json(reaction)
+      )
       .catch((err) => res.status(500).json(err));
   },
   // delete friend from user
   deleteReaction(req, res) {
-  Reaction.findOneAndDelete(
-    { _id: req.params.reactionId }
-  )
-  .then((reaction) =>
-  !reaction
-    ? res
-        .status(404)
-        .json({ message: 'No reaction found with that ID' })
-    : res.json(reaction)
-)
-    .catch((err) => res.status(500).json(err));
-},
+    Reaction.findOneAndDelete(
+      { _id: req.params.reactionId }
+    )
+      .then((reaction) =>
+        !reaction
+          ? res
+            .status(404)
+            .json({ message: 'No reaction found with that ID' })
+          : res.json(reaction)
+      )
+      .catch((err) => res.status(500).json(err));
+  },
 };
