@@ -23,22 +23,18 @@ module.exports = {
   createThought(req, res) {
     Thought.create(req.body)
       .then((dbThoughtData) => {
-        console.log(dbThoughtData)
-        console.log(req.body.username)
-        
         User.findOneAndUpdate(
           { username: req.body.username },
           { $addToSet: { thoughts: dbThoughtData._id } },
           { runValidators: true, new: true }
-          )
+        )
           .then((user) =>
-          !user
-          ? res
-          .status(404)
-          .json({ message: 'error with user' })
-          : res.json(dbThoughtData)
+            !user
+              ? res
+                .status(404)
+                .json({ message: 'error with user' })
+              : res.json(dbThoughtData)
           )
-          
       })
       .catch((err) => {
         console.log(err)
@@ -61,19 +57,25 @@ module.exports = {
   },
   // delete thought by ID
   deleteThought(req, res) {
-    Thought.findOneAndDelete({ _id: req.params.thoughtId })
+  Thought.findOneAndRemove({ _id: req.params.thoughtId })
       .then((thought) =>
         !thought
-          ? res.status(404).json({ message: 'No thought with that ID' })
+          ? res.status(404).json({ message: 'No such thought exists' })
           : User.findOneAndUpdate(
-            { _id: { $in: user.thoughts } },
-            { $pull: { thoughts: req.params.thoughtId } },
-            { runValidators: true, new: true })
+              { username: thought.username },
+              { $pull: { thoughts: req.params.thoughtId } },
+              { new: true }
+            )
       )
-      .then(() => res.json({ message: 'Thoughts deleted!' }))
+      .then((user) =>
+        !user
+          ? res.status(404).json({ message: 'Thought deleted, but no user found'})
+          : res.json({ message: 'Thought successfully deleted' })
+      )
       .catch((err) => {
-        console.log(err)
-        res.status(500).json(err)});
+        console.log(err);
+        res.status(500).json(err);
+      });
   },
   // add a reaction to specified thought
   addReaction(req, res) {
