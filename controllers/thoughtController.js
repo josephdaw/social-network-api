@@ -79,39 +79,35 @@ module.exports = {
   },
   // add a reaction to specified thought
   addReaction(req, res) {
-    Reaction.create(req.body)
-      .then((dbReactionData) => {
-        console.log("reaction", dbReactionData)
-        Thought.findOneAndUpdate(
-          { _id: req.params.thoughtId },
-          { $addToSet: { reactions: dbReactionData } },
-          { runValidators: true, new: true }
-        )
-          .then((thought) =>
-            !thought
-              ? res
-                .status(404)
-                .json({ message: 'error with thought' })
-              : res.json(dbReactionData)
-          )
-      })
+    Thought.findOneAndUpdate(
+      { _id: req.params.thoughtId },
+      { $addToSet: { reactions: req.body } },
+      { runValidators: true, new: true }
+    )
+      .then((thought) =>
+        !thought
+          ? res
+            .status(404)
+            .json({ message: 'error with thought' })
+          : res.json(thought)
+      )
       .catch((err) => {
         console.log(err)
         res.status(500).json(err)
       });
-  },
+},
   // delete friend from user
   deleteReaction(req, res) {
-    Reaction.findOneAndDelete(
-      { _id: req.params.reactionId }
+  Reaction.findOneAndDelete(
+    { _id: req.params.reactionId }
+  )
+    .then((reaction) =>
+      !reaction
+        ? res
+          .status(404)
+          .json({ message: 'No reaction found with that ID' })
+        : res.json(reaction)
     )
-      .then((reaction) =>
-        !reaction
-          ? res
-            .status(404)
-            .json({ message: 'No reaction found with that ID' })
-          : res.json(reaction)
-      )
-      .catch((err) => res.status(500).json(err));
-  },
+    .catch((err) => res.status(500).json(err));
+},
 };
