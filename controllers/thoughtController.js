@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const Thought = require('../models/Thought')
-const Reaction = require('../models/Reaction')
 
 module.exports = {
   // get all thoughts
@@ -96,7 +95,7 @@ module.exports = {
         res.status(500).json(err)
       });
 },
-  // delete friend from user
+  // delete reaction from specified thought
   deleteReaction(req, res) {
     Thought.findOneAndUpdate(
       { _id: req.params.thoughtId },
