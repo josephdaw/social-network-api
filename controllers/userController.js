@@ -39,7 +39,7 @@ module.exports = {
       )
       .catch((err) => res.status(500).json(err));
   },
-  // delete user by ID
+  // delete user by ID - also delete thoughts related to that user
   deleteUser(req, res) {
     User.findOneAndDelete({ _id: req.params.userId })
       .then((user) =>
